@@ -1,0 +1,77 @@
+# ATM Cash Forecasting Configuration
+
+# Data Settings
+data:
+  raw_data_path: "data/raw/"
+  processed_data_path: "data/processed/"
+  n_atms: 10000
+  country: "IN"  # India
+  
+# Feature Engineering
+features:
+  lag_periods: [1, 7, 14, 30]
+  rolling_windows: [7, 14, 30]
+  use_holidays: true
+  use_covariance: true
+  
+# Models
+models:
+  # KATS Models
+  prophet:
+    changepoint_prior_scale: 0.05
+    seasonality_prior_scale: 10.0
+    seasonality_mode: 'multiplicative'
+    
+  theta:
+    m: 12
+    
+  ensemble:
+    models: ['prophet', 'theta']
+    
+  # Darts N-BEATS
+  nbeats:
+    input_chunk_length: 30
+    output_chunk_length: 7
+    num_stacks: 30
+    num_blocks: 1
+    num_layers: 4
+    layer_widths: 256
+    expansion_coefficient_dim: 5
+    n_epochs: 100
+    batch_size: 32
+    
+  # LightGBM
+  lightgbm:
+    objective: 'regression'
+    metric: 'rmse'
+    boosting_type: 'gbdt'
+    num_leaves: 31
+    learning_rate: 0.05
+    n_estimators: 200
+    max_depth: 7
+    min_child_samples: 20
+    subsample: 0.8
+    colsample_bytree: 0.8
+    
+# Backtesting
+backtesting:
+  test_size: 0.2
+  validation_size: 0.1
+  cv_splits: 5
+  forecast_horizon: 7
+  
+# Cost Parameters
+costs:
+  stockout_cost_per_transaction: 100  # INR
+  holding_cost_per_day: 1  # INR per 1000 rupees
+  
+# Streamlit UI
+ui:
+  title: "ATM Cash Forecasting System"
+  page_icon: "🏧"
+  layout: "wide"
+  
+# Model Selection
+selection:
+  primary_metric: "stockout_cost"
+  secondary_metrics: ["rmse", "mae", "mape"]
